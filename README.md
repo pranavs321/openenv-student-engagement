@@ -1,9 +1,22 @@
+---
+title: Student Engagement Env
+emoji: 🎓
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Student Engagement Detection - OpenEnv Environment
 
 This is a submission for the Meta OpenEnv Hackathon. This environment evaluates the capability of Large Language Models (LLMs) to accurately interpret multimodal cues (eye gaze, posture, facial expressions, general activity) representing student classroom behaviors, and correctly classify or predict their classroom engagement levels.
 
 ## Motivation
 Measuring student engagement reliably requires fusing multiple signals accurately. AI agents capable of monitoring these behaviors and making real-time, logical inferences could revolutionize automated EdTech and virtual teaching assistants. 
+
+## System Architecture & Workflow
+
+![System Workflow](CLB.png)
 
 ## Action and Observation Spaces
 
@@ -42,13 +55,4 @@ In adherence to the OpenEnv guidelines, this project follows the primary specifi
 1. Make sure required dependencies are installed:
    ```bash
    pip install -r requirements.txt
-   ```
-2. Export your Hugging Face API key (used as OpenAI proxy key for the Hackathon platform):
-   ```bash
-   export HF_TOKEN="your_hugging_face_token_here"
-   export MODEL_NAME="gpt-4.1-mini"  # Or your chosen model for testing
-   ```
-3. Run the evaluation baseline:
-   ```bash
-   python inference.py
-   ```
+
