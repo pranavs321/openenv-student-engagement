@@ -12,3 +12,9 @@ COPY . /app/
 
 # Environment constraints are 2vCPU / 8GB RAM, this slim image is well within limits
 # By default, the environment relies mostly on API calls which consume negligible memory.
+
+# Expose standard Hugging Face port
+EXPOSE 7860
+
+# Run a dummy server to keep the Space "Running"
+CMD ["python", "app.py"]
