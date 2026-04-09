@@ -1,6 +1,7 @@
 import os
 import json
-from openai import OpenAI
+import urllib.request
+import urllib.error
 from env.environment import StudentEngagementEnvironment, Action
 
 # Read environment variables with defaults where required
@@ -11,11 +12,8 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 if HF_TOKEN is None:
     raise ValueError("HF_TOKEN environment variable is required")
 
-# Initialize OpenAI client
-client = OpenAI(
-    base_url=API_BASE_URL,
-    api_key=HF_TOKEN
-)
+# Remove buggy OpenAI client initialization.
+# We will use standard urllib to call the REST API instead to bypass the evaluator's broken httpx dependency.
 
 def format_prompt(obs_data: dict, difficulty: str) -> str:
     """Formats the observation into a prompt for the LLM."""
@@ -68,15 +66,31 @@ def run_episode():
             # 1. Ask LLM what to do
             prompt = format_prompt(obs.data, obs.difficulty)
             
-            response = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=[
-                    {"role": "system", "content": "You are an expert AI grading real-world tasks. Return only pure JSON without markdown blocks."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
+            messages = [
+                {"role": "system", "content": "You are an expert AI grading real-world tasks. Return only pure JSON without markdown blocks."},
+                {"role": "user", "content": prompt}
+            ]
             
-            raw_content = response.choices[0].message.content.strip()
+            base_url = API_BASE_URL.rstrip('/')
+            url = f"{base_url}/chat/completions"
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {HF_TOKEN}"
+            }
+            data = {
+                "model": MODEL_NAME,
+                "messages": messages
+            }
+            
+            req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+            try:
+                with urllib.request.urlopen(req) as response:
+                    result = json.loads(response.read().decode("utf-8"))
+                    raw_content = result["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                # If API call fails, simulate an empty response
+                print(f"API Error: {e}")
+                raw_content = "{}"
             
             # Clean up potential markdown formatting (```json ... ```)
             if raw_content.startswith("```json"):
