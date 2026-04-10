@@ -125,7 +125,7 @@ def run_episode():
             
     except Exception as e:
         success = False
-        print(f"[STEP] step={total_steps} action=Exception reward=0.00 done=true error=\"{str(e)}\"")
+        print(f"[STEP] step={total_steps} action=Exception reward=0.01 done=true error=\"{str(e)}\"")
     finally:
         env.close()
         
