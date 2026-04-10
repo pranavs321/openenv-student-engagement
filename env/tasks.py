@@ -7,7 +7,7 @@ class TaskManager:
     def get_easy_tasks() -> List[Dict[str, Any]]:
         return [
             {
-                "id": "easy_1",
+                "id": "single_student_classification",
                 "observation": {
                     "student_id": "student_1",
                     "eye_gaze": "looking away from screen, frequent glances at phone",
@@ -16,17 +16,6 @@ class TaskManager:
                     "activity": "no notes taken in last 5 minutes, browser tab switched twice"
                 },
                 "ground_truth": "Disengaged"
-            },
-            {
-                "id": "easy_2",
-                "observation": {
-                    "student_id": "student_2",
-                    "eye_gaze": "focused on the main speaker",
-                    "posture": "upright, leaning slightly forward",
-                    "facial_expression": "attentive, occasional nodding",
-                    "activity": "actively typing notes on the subject"
-                },
-                "ground_truth": "Engaged"
             }
         ]
 
@@ -34,7 +23,7 @@ class TaskManager:
     def get_medium_tasks() -> List[Dict[str, Any]]:
         return [
             {
-                "id": "medium_1",
+                "id": "multi_student_classroom_analysis",
                 "observation": [
                     {
                         "student_id": "std_10",
@@ -80,7 +69,7 @@ class TaskManager:
     def get_hard_tasks() -> List[Dict[str, Any]]:
         return [
             {
-                "id": "hard_1",
+                "id": "temporal_engagement_tracking",
                 "sequence": [
                     {
                         "time": "T+0",
