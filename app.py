@@ -26,6 +26,7 @@ async def reset(request: Dict[str, Any] = Body(default={})):
         "observation": obs_dict,
         "reward": None,
         "done": False,
+        "info": {},
     }
 
 @app.post("/step")
@@ -49,6 +50,7 @@ async def step(request: Dict[str, Any] = Body(default={})):
         "observation": obs_dict,
         "reward": reward,
         "done": done,
+        "info": info,
     }
 
 @app.get("/state")

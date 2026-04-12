@@ -58,7 +58,8 @@ class StudentEngagementEnvironment:
         """Processes the action and returns the next state."""
         if self.done or self.current_task_idx >= len(self.tasks):
             # Environment is already done — return clamped float, NOT Reward object
-            return self._get_current_observation(force_done=True), _clamp(0.1), True, {"error": "Environment has already completed all tasks."}
+            fallback_score = _clamp(0.5)
+            return self._get_current_observation(force_done=True), fallback_score, True, {"error": "Environment has already completed all tasks.", "score": fallback_score}
 
         current_task_data, difficulty, grader = self.tasks[self.current_task_idx]
         
@@ -66,7 +67,7 @@ class StudentEngagementEnvironment:
         try:
             score = grader.grade(action.payload, current_task_data)
         except Exception as e:
-            score = 0.1
+            score = 0.5
         
         # ALWAYS clamp the score to be strictly between 0 and 1
         score = _clamp(score)

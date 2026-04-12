@@ -1,10 +1,13 @@
 from typing import Any, Dict
+import math
 
 def _clamp(score: float) -> float:
     """Guarantee score is strictly between 0.01 and 0.99."""
     try:
         score = float(score)
     except (ValueError, TypeError):
+        score = 0.5
+    if not math.isfinite(score):
         score = 0.5
     return max(0.01, min(0.99, score))
 
