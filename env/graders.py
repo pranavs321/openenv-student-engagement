@@ -2,14 +2,19 @@ from typing import Any, Dict
 import math
 
 def _clamp(score: float) -> float:
-    """Guarantee score is strictly between 0.01 and 0.99."""
+    """Guarantee score is strictly between 0.0001 and 0.9999 to be bulletproof."""
     try:
         score = float(score)
     except (ValueError, TypeError):
         score = 0.5
     if not math.isfinite(score):
         score = 0.5
-    return max(0.01, min(0.99, score))
+    # Triple-clamp: ensure we're nowhere near 0 or 1
+    clamped = max(0.0001, min(0.9999, score))
+    # Final safety: if it somehow rounds to 0 or 1, force to middle
+    if clamped <= 0.0 or clamped >= 1.0:
+        clamped = 0.5
+    return clamped
 
 def grade_easy(action: Any, task_data: Dict[str, Any]) -> float:
     try:
