@@ -14,7 +14,7 @@ def _clamp(score: float) -> float:
         score = 0.5
     return max(_SCORE_MIN, min(_SCORE_MAX, score))
 
-def grade_easy(action: Any, task_data: Dict[str, Any]) -> float:
+def grade_easy(action: Any = None, task_data: Any = None, *args, **kwargs) -> float:
     try:
         pred_label = ""
         if isinstance(action, dict):
@@ -34,7 +34,7 @@ def grade_easy(action: Any, task_data: Dict[str, Any]) -> float:
     except Exception as e:
         return _clamp(0.5)
 
-def grade_medium(action: Any, task_data: Dict[str, Any]) -> float:
+def grade_medium(action: Any = None, task_data: Any = None, *args, **kwargs) -> float:
     try:
         pred_ids = []
         intervention = ""
@@ -77,7 +77,7 @@ def grade_medium(action: Any, task_data: Dict[str, Any]) -> float:
     except Exception as e:
         return _clamp(0.5)
 
-def grade_hard(action: Any, task_data: Dict[str, Any]) -> float:
+def grade_hard(action: Any = None, task_data: Any = None, *args, **kwargs) -> float:
     try:
         pred = ""
         reasoning = ""
