@@ -1,20 +1,18 @@
 from typing import Any, Dict
 import math
 
+_SCORE_MIN = 0.01
+_SCORE_MAX = 0.99
+
 def _clamp(score: float) -> float:
-    """Guarantee score stays safely inside (0, 1) even after rounding."""
+    """Guarantee score stays strictly inside (0, 1)."""
     try:
         score = float(score)
     except (ValueError, TypeError):
         score = 0.5
     if not math.isfinite(score):
         score = 0.5
-    # Keep values in a safe interior band to avoid validator-side rounding to 0.0/1.0.
-    clamped = max(0.1, min(0.9, score))
-    # Final safety: if it somehow rounds to 0 or 1, force to middle
-    if clamped <= 0.0 or clamped >= 1.0:
-        clamped = 0.5
-    return clamped
+    return max(_SCORE_MIN, min(_SCORE_MAX, score))
 
 def grade_easy(action: Any, task_data: Dict[str, Any]) -> float:
     try:
