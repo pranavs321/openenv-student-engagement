@@ -1,13 +1,18 @@
 from typing import Any, Dict
 
+
+def _clamp(score: float) -> float:
+    """Guarantee score is strictly between 0 and 1 (not 0.0, not 1.0)."""
+    return max(0.01, min(0.99, float(score)))
+
+
 class BaseGrader:
     def grade(self, action: Any, task_data: Dict[str, Any]) -> float:
         raise NotImplementedError
 
+
 class EasyGrader(BaseGrader):
     def grade(self, action: Any, task_data: Dict[str, Any]) -> float:
-        # action is expected to be a string or a dict containing 'label'
-        # we will handle parsing from the action models defined in environment.py
         pred_label = ""
         if isinstance(action, dict):
             pred_label = action.get("label", "").lower()
@@ -16,16 +21,15 @@ class EasyGrader(BaseGrader):
                 pred_label = action.label.lower()
             except AttributeError:
                 pass
-        
+
         gt = task_data["ground_truth"].lower()
-        
-        if gt in pred_label:
-            return 0.99
-        return 0.01
+
+        raw = 0.9 if gt in pred_label else 0.1
+        return _clamp(raw)
+
 
 class MediumGrader(BaseGrader):
     def grade(self, action: Any, task_data: Dict[str, Any]) -> float:
-        # action is expected to have disengaged_student_ids (List[str]) and intervention (str)
         try:
             if isinstance(action, dict):
                 pred_ids = action.get("disengaged_student_ids", [])
@@ -34,25 +38,27 @@ class MediumGrader(BaseGrader):
                 pred_ids = action.disengaged_student_ids
                 intervention = action.intervention
         except AttributeError:
-            return 0.01
+            return _clamp(0.1)
 
         gt_ids = set(task_data["ground_truth_disengaged_ids"])
         pred_ids_set = set(pred_ids)
 
         if not gt_ids and not pred_ids_set:
-            accuracy_score = 0.99
+            accuracy_score = 0.9
         else:
             intersection = gt_ids.intersection(pred_ids_set)
             union = gt_ids.union(pred_ids_set)
-            accuracy_score = len(intersection) / len(union) if union else 0.01
+            # Ratio can be 0.0 or 1.0 — multiply by 0.8 to stay within (0.1, 0.9)
+            ratio = len(intersection) / len(union) if union else 0.0
+            accuracy_score = 0.1 + (ratio * 0.8)
 
-        intervention_score = 0.01
+        intervention_score = 0.1
         if isinstance(intervention, str) and len(intervention.strip()) > 10:
-            intervention_score = 0.99
-            
-        # 60% accuracy on ID picking, 40% on providing a valid non-empty intervention
+            intervention_score = 0.9
+
         final_score = (0.6 * accuracy_score) + (0.4 * intervention_score)
-        return float(final_score)
+        return _clamp(final_score)
+
 
 class HardGrader(BaseGrader):
     def grade(self, action: Any, task_data: Dict[str, Any]) -> float:
@@ -64,12 +70,12 @@ class HardGrader(BaseGrader):
                 pred = action.prediction.lower()
                 reasoning = action.reasoning
         except AttributeError:
-            return 0.01
-            
+            return _clamp(0.1)
+
         gt_pred = task_data["ground_truth_prediction"].lower()
-        
-        pred_score = 0.99 if gt_pred in pred else 0.01
-        reasoning_score = 0.99 if isinstance(reasoning, str) and len(reasoning.strip()) > 20 else 0.01
-        
-        # 50% for correct prediction, 50% for providing adequate reasoning
-        return float((0.5 * pred_score) + (0.5 * reasoning_score))
+
+        pred_score = 0.9 if gt_pred in pred else 0.1
+        reasoning_score = 0.9 if isinstance(reasoning, str) and len(reasoning.strip()) > 20 else 0.1
+
+        final_score = (0.5 * pred_score) + (0.5 * reasoning_score)
+        return _clamp(final_score)
