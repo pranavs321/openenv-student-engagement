@@ -1,18 +1,6 @@
-name: "Student Engagement Detection"
-description: "An environment evaluating AI models on identifying student engagement given textual and behavioral signals from a simulated classroom."
-tasks:
-  - id: "single_student_classification"
-    name: "Single Student Classification"
-    description: "Given text description of a single student's behavior (eye gaze, posture, facial expression), classify as Engaged or Disengaged."
-    difficulty: easy
-    grader: "env.graders:EasyGrader.grade"
-  - id: "multi_student_classroom_analysis"
-    name: "Multi Student Classroom Analysis"
-    description: "Given descriptions of 5 students, identify which ones are disengaged and suggest exactly one intervention."
-    difficulty: medium
-    grader: "env.graders:MediumGrader.grade"
-  - id: "temporal_engagement_tracking"
-    name: "Temporal Engagement Tracking"
-    description: "Given a sequence of observations over time for a student, predict the engagement level in the next time step."
-    difficulty: hard
-    grader: "env.graders:HardGrader.grade"
+spec_version: 1
+name: student_engagement
+type: space
+runtime: fastapi
+app: app:app
+port: 7860
