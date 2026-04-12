@@ -1,7 +1,7 @@
 from typing import Union, List, Dict, Any, Tuple
 from pydantic import BaseModel
 from .tasks import TaskManager
-from .graders import EasyGrader, MediumGrader, HardGrader
+from .graders import EasyGrader, MediumGrader, HardGrader, _clamp
 
 # ---- OpenEnv Typed Models ----
 
@@ -54,11 +54,11 @@ class StudentEngagementEnvironment:
         self.done = False
         return self._get_current_observation()
 
-    def step(self, action: Action) -> Tuple[Observation, Reward, bool, Dict[str, Any]]:
+    def step(self, action: Action) -> Tuple[Observation, float, bool, Dict[str, Any]]:
         """Processes the action and returns the next state."""
         if self.done or self.current_task_idx >= len(self.tasks):
-            # Environment is already done
-            return self._get_current_observation(force_done=True), Reward(value=0.0, is_done=True), True, {"error": "Environment has already completed all tasks."}
+            # Environment is already done — return clamped float, NOT Reward object
+            return self._get_current_observation(force_done=True), _clamp(0.1), True, {"error": "Environment has already completed all tasks."}
 
         current_task_data, difficulty, grader = self.tasks[self.current_task_idx]
         
@@ -66,9 +66,11 @@ class StudentEngagementEnvironment:
         try:
             score = grader.grade(action.payload, current_task_data)
         except Exception as e:
-            score = 0.0
+            score = 0.1
+        
+        # ALWAYS clamp the score to be strictly between 0 and 1
+        score = _clamp(score)
             
-        reward = Reward(value=score, is_done=True)
         info = {"task_id": current_task_data["id"], "score": score}
 
         # Move to next task
@@ -78,10 +80,8 @@ class StudentEngagementEnvironment:
         
         obs = self._get_current_observation(force_done=is_episode_done)
         
-        # OpenEnv expects step to return (observation, reward, done, info)
-        # We pass reward.value typically, but strictly typing it to Reward might be needed based on spec. 
-        # For our baseline script, we just need the float value.
-        return obs, reward.value, is_episode_done, info
+        # Return clamped float score directly — NOT a Reward object
+        return obs, score, is_episode_done, info
 
     def state(self) -> State:
         """Returns the current internal state."""

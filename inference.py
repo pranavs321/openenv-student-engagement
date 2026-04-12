@@ -45,6 +45,19 @@ def format_prompt(obs_data: dict, difficulty: str) -> str:
         """
     return ""
 
+def safe_reward(r):
+    """Triple-safety: clamp float AND the formatted string can never be 0.00 or 1.00."""
+    r = float(r)
+    r = max(0.01, min(0.99, r))
+    s = f"{r:.2f}"
+    # Final string-level safety net
+    if s == "0.00":
+        s = "0.01"
+    elif s == "1.00":
+        s = "0.99"
+    return r, s
+
+
 def run_episode():
     env = StudentEngagementEnvironment()
     obs = env.reset()
@@ -57,7 +70,8 @@ def run_episode():
         print(f"[START] task={task_name} env=student_engagement model={MODEL_NAME}")
         
         success = True
-        reward = 0.01
+        reward = 0.10
+        reward_str = "0.10"
         action_str = "predict()"
         
         try:
@@ -105,13 +119,14 @@ def run_episode():
             # 2. Step the strictly single-turn task
             next_obs, reward, is_episode_done, info = env.step(action)
             
-            reward_str = f"{reward:.2f}"
+            # CLAMP the reward before printing
+            reward, reward_str = safe_reward(reward)
             print(f"[STEP] step=1 action={action_str} reward={reward_str} done=true error=null")
             
         except Exception as e:
             success = False
-            reward_str = "0.01"
-            print(f"[STEP] step=1 action=Exception reward=0.01 done=true error=\"{str(e)}\"")
+            reward_str = "0.10"
+            print(f'[STEP] step=1 action=Exception reward=0.10 done=true error="{str(e)}"')
             next_obs = env._get_current_observation(force_done=True)
             env.done = True
             
